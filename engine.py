@@ -128,6 +128,8 @@ def play(player1,player2):
             move_coords = finds_winning_moves_ai(board,player)[0]
         elif player_name == "finds_winning_and_losing_ai":
             move_coords = finds_winning_and_losing_ai(board,player)
+        elif player_name == "minimax_ai":
+            move_coords = minimax_ai(board, player)
         # move_coords  = get_move() # use if playing as a human
         # move_coords = finds_winning_and_losing_ai(board, player)
         # move_coords = human_player(board, player)
@@ -217,4 +219,57 @@ def finds_winning_and_losing_ai(board,player) -> tuple[int,int]:
 def human_player(board, player) -> tuple[int,int]:
     return get_move()
 
-play('finds_winning_and_losing_ai','random_ai')
+def minimax_ai(board, player) -> tuple[int,int]:
+    best_score = float('-inf') if player == 'X' else float('inf')
+    best_move = None
+
+    for x in range(Board_width):
+        for y in range(Board_height):
+            if board[x][y] == None:
+                board[x][y] = player
+                score = minimax(board, switch_player(player), player == 'O')
+                board[x][y] = None
+
+                if player == 'X' and score > best_score:
+                    best_score = score
+                    best_move = (x,y)
+                elif player == 'O' and score < best_score:
+                    best_score = score
+                    best_move = (x,y)
+    if best_move is None:
+        return random_ai(board, player)
+    return best_move
+
+def minimax(board, player, is_maximizing) -> int:
+    winner = get_winner(board)
+
+    if winner == 'X':
+        return 1
+    elif winner == 'O':
+        return -1
+    elif not board_isnt_full(board):
+        return 0
+    
+
+    if is_maximizing:
+        best_score = float('-inf')
+        for x in range(Board_width):
+            for y in range(Board_height):
+                if board[x][y] == None:
+                    board[x][y] = 'X'
+                    score = minimax(board, 'O', False)
+                    board[x][y] = None
+                    best_score = max(score, best_score)
+        return best_score
+    else:
+        best_score = float('inf')
+        for x in range(Board_width):
+            for y in range(Board_height):
+                if board[x][y] == None:
+                    board[x][y] = 'O'
+                    score = minimax(board, 'X', True)
+                    board[x][y] = None
+                    best_score = min(score, best_score)
+        return best_score
+
+play('minimax_ai','finds_winning_and_losing_ai')
